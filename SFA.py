@@ -81,7 +81,7 @@ def fill_pdf(batch_df, batch_num):
                 dt = pd.to_datetime(raw_dob, dayfirst=True)
                 dd = str(dt.day).zfill(2)
                 mm = str(dt.month).zfill(2)
-                yy = str(dt.year)[-2:] 
+                yy = str(dt.year)
             except: pass
 
         data_map[fields["name"]] = full_name
