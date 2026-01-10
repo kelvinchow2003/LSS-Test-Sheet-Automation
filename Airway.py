@@ -1,47 +1,65 @@
 import pandas as pd
 from pypdf import PdfReader, PdfWriter
+from pypdf.generic import BooleanObject, NameObject, DictionaryObject
 import os
 import math
 
 # --- CONFIGURATION ---
-INPUT_PDF = "95on_sfa_test_sheet-20231121-fillable.pdf"
+INPUT_PDF = "95airwaymanagement2022-fillable.pdf"
 INPUT_CSV = "roster.csv"
 OUTPUT_FOLDER = "filled_forms/"
 
-# --- CONSTANT DATA (HOST & FACILITY) ---
-# Added "Facility Phone" to match Host Phone
-HOST_DATA = {
+# --- INVOICING DATA (HOST & FACILITY) ---
+HOST_FIELD_MAP = {
+    # FRONT PAGE
     "Host Name": "City of Markham",
-    "Host Phone": "9054703590 EXT 4342",
+    "Host Area Code": "905",
+    "Host Telephone #": "4703590 EXT 4342",
     "Host Address": "8600 McCowan Road",
     "Host City": "Markham",
-    "Host Province": "ON",
+    "Host Prov": "ON",
     "Host Postal Code": "L3P 3M2",
     "Facility Name": "Centennial C.C.",
-    "Facility Phone": "9054703590 EXT 4342"  # Added Exam/Facility Phone
+    "Facility Area Code": "905",
+    "Facility Telephone #": "4703590 EXT 4342",
+
+    # REVERSE PAGE
+    "Host Name Reverse": "City of Markham",
+    "Host Area Code Reverse": "905",
+    "Host Telephone # Reverse": "4703590 EXT 4342",
+    "Facility Name Reverse": "Centennial C.C.",
+    "Facility Area Code Reverse": "905",
+    "Facility Telephone # Reverse": "4703590 EXT 4342"
 }
 
-# --- THE MAPPING ---
-# Generates the map for candidates 1 to 10
+# --- CANDIDATE MAPPING ---
 candidate_map = []
+
+# Generate map for 1-10
 for i in range(1, 11):
-    suffix = str(i)
+    s = str(i)
+    
+    # HANDLE TYPO IN PDF: Candidate 5 has "postal code5" (no space)
+    if i == 5:
+        p_code = "postal code5"
+    else:
+        p_code = f"postal code {s}"
+
     entry = {
-        "name": f"NAME {suffix}",
-        "addr": f"Address {suffix}",
-        "apt":  f"Apt# {suffix}",
-        "city": f"City {suffix}",
-        "zip":  f"Postal Code {suffix}",
-        "email": f"Email {suffix}",
-        "phone": f"Phone {suffix}",
-        "dd": f"Day {suffix}",
-        "mm": f"Month {suffix}",
-        "yy": f"Year {suffix}",
+        "name": f"Name {s}",
+        "addr": f"address {s}", 
+        "apt":  f"apt# {s}",
+        "city": f"city {s}",
+        "zip":  p_code,
+        "email": f"email {s}",
+        "phone": f"phone {s}",
+        "dd": f"day {s}",
+        "mm": f"month {s}",
+        "yy": f"year {s}"
     }
     candidate_map.append(entry)
 
 def clean_name(raw_name):
-    """Converts 'Ausar , Lautaro' to 'Lautaro Ausar'."""
     if pd.isna(raw_name): return ""
     raw_name = str(raw_name)
     if "," in raw_name:
@@ -60,12 +78,11 @@ def fill_pdf(batch_df, batch_num):
     writer.append(reader)
     
     data_map = {}
-
-    # 1. APPLY HOST & FACILITY DATA
-    # Automatically maps keys in HOST_DATA to PDF fields
-    for field, value in HOST_DATA.items():
-        data_map[field] = value
     
+    # 1. APPLY HOST & FACILITY DATA
+    for field_name, value in HOST_FIELD_MAP.items():
+        data_map[field_name] = value
+
     # 2. APPLY CANDIDATE DATA
     for i, (idx, row) in enumerate(batch_df.iterrows()):
         if i >= len(candidate_map): break
@@ -90,16 +107,37 @@ def fill_pdf(batch_df, batch_num):
         data_map[fields["zip"]] = str(row.get("PostalCode", ""))
         data_map[fields["email"]] = str(row.get("E-mail", ""))
         data_map[fields["phone"]] = str(row.get("AttendeePhone", ""))
-        
         data_map[fields["dd"]] = dd
         data_map[fields["mm"]] = mm
         data_map[fields["yy"]] = yy
 
-    # Apply to all pages
+    # Apply data to all pages
     for page in writer.pages:
         writer.update_page_form_field_values(page, data_map)
 
-    output_filename = f"{OUTPUT_FOLDER}SFA_Test_Sheet_{batch_num}.pdf"
+    # =========================================================
+    # CRITICAL FIX 1: Fix "Floating Text" / Font Issues
+    # =========================================================
+    # This forces the PDF viewer to regenerate the field appearance
+    # using the native form fonts rather than generic text.
+    if "/AcroForm" not in writer.root_object:
+        writer.root_object.update({
+            NameObject("/AcroForm"): DictionaryObject()
+        })
+    writer.root_object["/AcroForm"][NameObject("/NeedAppearances")] = BooleanObject(True)
+
+    # =========================================================
+    # CRITICAL FIX 2: Fix "French text on top of English"
+    # =========================================================
+    # This copies the Layer Visibility settings (OCProperties) from
+    # the original file. Without this, hidden layers (like the French
+    # translation) become visible and stack on top of everything.
+    if "/OCProperties" in reader.root_object:
+        writer.root_object[NameObject("/OCProperties")] = \
+            reader.root_object["/OCProperties"].clone(writer)
+    # =========================================================
+
+    output_filename = f"{OUTPUT_FOLDER}Airway_Mgmt_Test_Sheet_{batch_num}.pdf"
     with open(output_filename, "wb") as f:
         writer.write(f)
     print(f"Generated: {output_filename}")
@@ -123,4 +161,4 @@ if os.path.exists(INPUT_CSV):
 
     print("Done.")
 else:
-    print(f"ERROR: {INPUT_CSV} not found.")
+    print(f"Error: {INPUT_CSV} not found.")

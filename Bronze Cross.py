@@ -17,7 +17,12 @@ HOST_DATA = {
     "host_city": "Markham",
     "host_prov": "ON",
     "host_postal": "L3P 3M2",
-    "facility_name": "Centennial C.C."
+    "facility_name": "Centennial C.C.",
+    
+    # EXAM TELEPHONE (Same as Host)
+    # Using Text30/Text31 which follow the Facility Name
+    "exam_area_code": "905",
+    "exam_phone_num": "4703590 EXT 4342"
 }
 
 # --- FIELD MAPPING FOR INVOICE ---
@@ -29,13 +34,14 @@ HOST_FIELD_MAP = {
     "host_city": "Text23",      
     "host_prov": "Text24",      
     "host_postal": "Text25",    
-    "facility_name": "Text29"   
+    "facility_name": "Text29",
+    "exam_area_code": "Text30", # New for Exam Phone
+    "exam_phone_num": "Text31"  # New for Exam Phone
 }
 
-# --- CANDIDATE MAPPING ---
+# --- CANDIDATE MAPPING (VERIFIED) ---
 candidate_map = [
     # === PAGE 1 (Candidates 1-6) ===
-    # These use the standard "Address1.0", "Address1.1.0" etc.
     {"p": "", "s": ".0"},           # 1
     {"p": "", "s": ".1.0"},         # 2
     {"p": "", "s": ".1.1.0"},       # 3 
@@ -44,16 +50,13 @@ candidate_map = [
     {"p": "", "s": ".1.1.1.1.1"},   # 6
 
     # === PAGE 2 (Candidates 7-13) ===
-    # These use prefixes "7", "8", etc.
     {"p": "7", "s": ".0"},          # 7
     {"p": "8", "s": ".1.0"},        # 8
     
-    # 9: FIXED
-    # Removed "Address1.0", "Address1.1.0", "Address1.1.1.0" (Which belong to Cand 1, 2, 3)
-    # Added "9Address1.1.1.0" (Logical pattern matches 7 & 8)
+    # 9: FIXED (Only targeting correct Address fields)
     {"p": "9", "s": ".1.1.0", "addr_override": [
-        "9Address1.1.1.0",  # The logical field name for 9
-        "Address1.1.1.0X",  # The specific ghost field
+        "9Address1.1.1.0",  # Logical field for 9
+        "Address1.1.1.0X",  # Ghost field
     ]},
     
     {"p": "10", "s": ".1.1.1.0", "name_override": "10"}, # 10

@@ -17,11 +17,15 @@ HOST_DATA = {
     "host_city": "Markham",
     "host_prov": "ON",
     "host_postal": "L3P 3M2",
-    "facility_name": "Centennial C.C."
+    "facility_name": "Centennial C.C.",
+    
+    # EXAM TELEPHONE (Same as Host)
+    # mapped to the fields immediately following Facility Name
+    "exam_area_code": "905",
+    "exam_phone_num": "4703590 EXT 4342"
 }
 
 # --- FIELD MAPPING FOR INVOICE ---
-# Using the mapping pattern verified in the Bronze Medallion form
 HOST_FIELD_MAP = {
     "host_name": "Text19",      
     "host_area_code": "Text20", 
@@ -30,52 +34,33 @@ HOST_FIELD_MAP = {
     "host_city": "Text23",      
     "host_prov": "Text24",      
     "host_postal": "Text25",    
-    "facility_name": "Text29"   
+    "facility_name": "Text29",
+    
+    # EXAM / FACILITY PHONE MAPPING
+    # Text30/31 typically follow Text29 (Facility Name) in this form structure
+    "exam_area_code": "Text30", 
+    "exam_phone_num": "Text31"
 }
 
-# --- CANDIDATE MAPPING ---
-# Verified Logic:
-# 1-6: Explicit
-# 7-11: Standard Recursive Tree
-# 12 & 13: Deep Siblings (.0 and .1)
+# --- CANDIDATE MAPPING (VERIFIED) ---
 candidate_map = [
-
     # === PAGE 1 (Candidates 1-6) ===
-
-    # WORKING: Explicit names
-
     {"type": "explicit", "s": "1"}, # 1
-
     {"type": "explicit", "s": "2"}, # 2
-
     {"type": "explicit", "s": "3"}, # 3
-
     {"type": "explicit", "s": "4"}, # 4
-
     {"type": "explicit", "s": "5"}, # 5
-
     {"type": "explicit", "s": "6"}, # 6
 
     # === PAGE 2 (Candidates 7-13) ===
-
-    # WORKING: 7-13
-
     {"type": "dot", "s": ".0"},           # 7
-
     {"type": "dot", "s": ".1.0"},         # 8
-
     {"type": "dot", "s": ".1.1.0"},       # 9
-
     {"type": "dot", "s": ".1.1.1.0"},     # 10
-
     {"type": "dot", "s": ".1.1.1.1.0"},   # 11
-
     {"type": "dot", "s": ".1.1.1.1.1.0"}, # 12
-
-    {"type": "dot", "s": ".1.1.1.1.1.1"}, 
-
+    {"type": "dot", "s": ".1.1.1.1.1.1"}, # 13
 ]
-
 
 def clean_name(raw_name):
     if pd.isna(raw_name): return ""

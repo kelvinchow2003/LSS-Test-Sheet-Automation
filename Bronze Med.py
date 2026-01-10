@@ -11,13 +11,18 @@ OUTPUT_FOLDER = "filled_forms/"
 # --- INVOICING DATA (HOST & FACILITY) ---
 HOST_DATA = {
     "host_name": "City of Markham",
-    "host_area_code": "905",               # Split Area Code
-    "host_phone_num": "4703590 EXT 4342",  # Split Number
+    "host_area_code": "905",               
+    "host_phone_num": "4703590 EXT 4342",  
     "host_addr": "8600 McCowan Road",
     "host_city": "Markham",
     "host_prov": "ON",
     "host_postal": "L3P 3M2",
-    "facility_name": "Centennial C.C."
+    "facility_name": "Centennial C.C.",
+    
+    # EXAM TELEPHONE (Same as Host)
+    # Using the Text30/Text31 slots which follow the Facility Name
+    "exam_area_code": "905",
+    "exam_phone_num": "4703590 EXT 4342"
 }
 
 # --- FIELD MAPPING ---
@@ -25,15 +30,21 @@ HOST_DATA = {
 # Text20 = Area Code
 # Text21 = Phone Number
 # Text22 = Address
+# ...
+# Text29 = Facility Name
+# Text30 = Facility Area Code (deduced)
+# Text31 = Facility Phone Num (deduced)
 HOST_FIELD_MAP = {
     "host_name": "Text19",      
-    "host_area_code": "Text20", # New mapping for Area Code
-    "host_phone_num": "Text21", # New mapping for Main Number
+    "host_area_code": "Text20", 
+    "host_phone_num": "Text21", 
     "host_addr": "Text22",      
     "host_city": "Text23",      
     "host_prov": "Text24",      
     "host_postal": "Text25",    
-    "facility_name": "Text29"   
+    "facility_name": "Text29",
+    "exam_area_code": "Text30", # New
+    "exam_phone_num": "Text31"  # New
 }
 
 # --- CANDIDATE MAPPING (UNCHANGED) ---
